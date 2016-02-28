@@ -10,22 +10,32 @@ import java.util.Scanner;
 public class ExternalMergeSort {
     public static void main(String [] args){
         //output file from args
-        //change file to string for cmd line args
+        //get input file to string for cmd line args
+
+//        //insertionSort testing
+//        String [] temp = {"e","d","a","c","b"};
+//        for (int i =0;i< temp.length;i++){
+//            System.out.print(temp[i]);
+//        }
+//        System.out.println();
+//        temp = insertionSort(temp);
+//        for (int i =0;i< temp.length;i++){
+//            System.out.print(temp[i]);
+//        }
+
         File inputFile = new File("text.txt");
         Scanner fileScan;
-        int chunckID;
+        int chunkID;
         try {
             fileScan = new Scanner(inputFile);
-            chunckID = sort(fileScan);
+            chunkID = sort(fileScan);
             //TODO if chunks are <2 write to output now
+            merge(chunkID /*, outputfile*/);
 
 
         } catch(IOException io){
             System.out.print("File not found");
         }
-
-
-
 
     }//main
 
@@ -38,9 +48,9 @@ public class ExternalMergeSort {
         while(fileScan.hasNext()){
             aux[count] = fileScan.next();
             count += 1;
-            if (count % 15 == 0) {
+            if (count % 16 == 0) {
                 count = 0;
-                //call insertionSort(aux);
+                aux = insertionSort(aux);
                 //call? write to disk
                 //numberChunks++
                 //written = true;
@@ -48,6 +58,7 @@ public class ExternalMergeSort {
 
             }
             if ( !fileScan.hasNext() && !written ){
+                //if /length < 2 dont sort?
                 //call insertionSort(aux);
                 //call? write to disk
                 //numberChunks++
@@ -57,5 +68,24 @@ public class ExternalMergeSort {
         }
 
         return numberChunks;
-    }
+    }//sort
+
+    public static String[] insertionSort(String[] aux){
+        String key;
+        int j;
+        for (int i = 1; i < aux.length; i++){
+            key = aux[i];
+            j = i;
+            while(j > 0 && key.compareTo(aux[j-1]) < 0 ){
+                aux[j] = aux[j-1];
+                j--;
+            }
+            aux[j] = key;
+        }
+        return aux;
+    }//insertionSort
+
+    public static void merge(int chunkID /*, outputfile*/){
+        //TODO go through ids merging then write to output
+    }//merge
 }//class
