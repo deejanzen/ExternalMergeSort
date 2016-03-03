@@ -14,25 +14,6 @@ public class ExternalMergeSort {
     public static void main(String [] args){
         //output file from args
         //get input file to string for cmd line args
-
-        //insertionSort testing
-//        String [] temp_old = {"e","d","a","c","b"};
-//        String [] temp = {"e", "a"};
-//
-//
-//
-//        for (int i =0;i< temp.length;i++){
-//            System.out.print(temp[i]);
-//        }
-//        System.out.println();
-//        temp = insertionSort(temp);
-//        for (int i =0;i< temp.length;i++){
-//            System.out.print(temp[i]);
-//        }
-//        int chunkI = 700;
-//        int passi = 1;
-//        String s = String.format("xms.tmp.pass_%04d.chunk_%04d", passi, chunkI);
-//        System.out.print(s);
         List<String> files= new ArrayList<>();
 
         File inputFile = new File("text.txt");
@@ -41,17 +22,13 @@ public class ExternalMergeSort {
         try {
             fileScan = new Scanner(inputFile);
             files = sort(fileScan);
-            writeMerge(files.get(0),files.get(1), new String("outputTest"));
-            //merge(files, /*, outputfile*/);
-
-
+            if (files != null) merge(files,  new String("outputMerge") );
         } catch(IOException io){
-            System.out.print("File not found");
+            System.out.print("File not found main");
         }
 
     }//main
 
-    //xms.tmp.pass_0001.chunk_0000
     public static List<String> sort(Scanner fileScan){
         List<String> temps= new ArrayList<>();
         String tempFile;
@@ -131,39 +108,52 @@ public class ExternalMergeSort {
         }
     }
 
-    public static void merge(List<String> filesList /*, outputfile*/) throws IOException {
+    public static void merge(List<String> files, String output) throws IOException {
         //TODO go through ids merging then write to output
-//        String tempFile = "xms.tmp.pass_%04D.chunk_%04d";
-//        int passID = 0;
-//        int workingChunkID = chunkID;
-//        Scanner fileScan0, fileScan1;
-//        List<String> leftover = new ArrayList<String>();
-//
-//        while(workingChunkID > 2){
-//            if (workingChunkID % 2 != 0){
-//                //write odd  pass0 chunkID to list to merge at end
-//                leftover.add(String.format("xms.tmp.pass_%04D.chunk_%04d", passID, workingChunkID));
-//                workingChunkID-=1;
-//                chunkID-=1;
-//            }
-//
-//            fileScan0 = new Scanner(new File(String.format("xms.tmp.pass_%04D.chunk_%04d", passID, chunkID-workingChunkID)));
-//            workingChunkID-=1;
-//            fileScan1 = new Scanner(new File(String.format("xms.tmp.pass_%04D.chunk_%04d", passID, chunkID-workingChunkID)));
-//            workingChunkID-=1;
-//
-//
-//            if (chunkID / 2 == 1) {
-//                //TODO go through last two print to output
-//            }
-//            else{
-//
-//            }
-//        }
-//
+        List<String> temp = new ArrayList<String>();
+        String tempFile;
+        int passID = 1;
+        int filesToMerge = files.size();
+        int i = 0;
+
+        while(true){
+            if (filesToMerge % 2 != 0 && temp.isEmpty()){
+                temp.add(files.remove(filesToMerge-1));
+                filesToMerge-=1;
+            }
+            if (filesToMerge % 2 != 0 && !temp.isEmpty()){
+                files.add(temp.remove(0));
+                filesToMerge+=1;
+            }
+            if (filesToMerge == 2 && temp.isEmpty()){
+                writeMerge(files.get(i),files.get(i+1), output);
+
+                break;
+            }
+            if (filesToMerge == 2 && !temp.isEmpty()){
+                String Last = String.format("xms.tmp.pass_%04d.chunk_%04d", passID, i/2);
+                files.set(0, writeMerge(files.get(i),files.get(i+1), Last));
+                writeMerge(files.get(0), temp.get(0), output);
+                for (String s: files) System.out.print("files: "+s+"\n");
+                for (String s: temp) System.out.print("temp: "+s+"\n");
+                break;
+            }
+
+            tempFile = String.format("xms.tmp.pass_%04d.chunk_%04d", passID, i/2);
+            String toWrite = writeMerge(files.get(i),files.get(i+1), tempFile);
+            files.set(i/2, toWrite );
+
+            if (i == filesToMerge-2){
+                i = 0;
+                passID+=1;
+                filesToMerge = filesToMerge / 2;
+            }
+            else i+=2;
+
+        }
     }//merge
 
-    public static void writeMerge(String merge0, String merge1, String output) throws IOException{
+    public static String writeMerge(String merge0, String merge1, String output) throws IOException{
         Scanner fileScan0 = new Scanner(new File(merge0));
         Scanner fileScan1 = new Scanner(new File(merge1));
         FileWriter writer = new FileWriter(new File(output), true);
@@ -200,17 +190,48 @@ public class ExternalMergeSort {
                     string1 = null;
                 }
             }
-            else if (string0 != null && string1 == null){
-                writer.write(string0);
-                writer.write(System.lineSeparator());
-                string0 = null;
-            }
-            else if (string0 == null && string1 != null){
-                writer.write(string1);
-                writer.write(System.lineSeparator());
-                string1 = null;
+            else {
+                if (string0 != null && string1 == null) {
+                    writer.write(string0);
+                    writer.write(System.lineSeparator());
+                    string0 = null;
+                } else if (string0 == null && string1 != null) {//redun
+                    writer.write(string1);
+                    writer.write(System.lineSeparator());
+                    string1 = null;
+                }
             }
         }
+        if (!fileScan0.hasNext() && !fileScan1.hasNext() ){
+            if      (string0 != null)  writer.write(string0);
+            else if (string1 != null)  writer.write(string1);
+        }
         writer.close();
+        fileScan0.close();
+        fileScan1.close();
+        return output;
     }//writeMerge
 }//class
+
+//TESTING
+//insertionSort testing
+//        String [] temp_old = {"e","d","a","c","b"};
+//        String [] temp = {"e", "a"};
+//
+//
+//
+//        for (int i =0;i< temp.length;i++){
+//            System.out.print(temp[i]);
+//        }
+//        System.out.println();
+//        temp = insertionSort(temp);
+//        for (int i =0;i< temp.length;i++){
+//            System.out.print(temp[i]);
+//        }
+//        int chunkI = 700;
+//        int passi = 1;
+//        String s = String.format("xms.tmp.pass_%04d.chunk_%04d", passi, chunkI);
+//        System.out.print(s);
+//         writeMerge(files.get(0),files.get(1), new String("outputTest"));
+
+
